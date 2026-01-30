@@ -28,60 +28,51 @@ struct Result
     std::size_t     bytes   = 0;
 };
 
-void scanLine(std::string line, Result& result)
+Result getData(std::istream& file)
 {
+    Result      result;
+    int         c        = file.get();
+    bool        newLine  = true;
+    bool        inWord   = !std::isspace(c);
 
-    bool inWord     = line.size() != 0 && !std::isspace(line[0]);
-    int  charSize   = 0;
+    for (; c != std::char_traits<char>::eof(); c = file.get()) {
 
-    for (char c: line) {
+        // A line must have at least one character on it.
+        // The new line character counts as a character for this purpose.
+        if (newLine == true) {
+            newLine = false;
+            result.lines    += 1;
+        }
+        if (c == '\n') {
+            newLine = true;
+        }
+
+        // Words are "white space" separated.
+        // Increment the counter when we hit a space when inside a word.
         bool isSpace = std::isspace(c);
+
         if (inWord && isSpace) {
             inWord = false;
-            result.words += 1;
+            result.words    += 1;
         }
         else if (!inWord && !isSpace) {
             inWord = true;
         }
-        if (charSize == 0) {
-            result.chars += 1;
-            // 0yyyzzzz => 0yyy zzzz
-            if ((c & 0x80) == 0) {
-                charSize = 0;
-            }
-            // 110xxxyy => 110x xxyy
-            else if ((c & 0xE0) == 0xC0) {
-                charSize = 1;
-            }
-            // 1110wwww => 1110 wwww
-            else if ((c & 0xF0) == 0xE0) {
-                charSize = 2;
-            }
-            // 11110uvv => 1111 0uyy
-            else if ((c & 0xF8) == 0xF0) {
-                charSize = 3;
-            }
+
+        // Ignore extra characters in multi byte character;
+        if ((c & 0xC0) != 0x80) {
+            result.chars    += 1;
         }
-        else {
-            --charSize;
-        }
+
+        // Increment for each char read from the stream
+        result.bytes    += 1;
     }
 
-    result.lines    += 1;
-    result.chars    += 1;
-    result.bytes    += (line.size() + 1);
+    // We are in a word that has not been counted.
     if (inWord) {
-        result.words    += 1;
+        result.words += 1;
     }
-}
 
-Result getData(std::istream& file)
-{
-    Result          result;
-    std::string     line;
-    while (std::getline(file, line)) {
-        scanLine(line, result);
-    }
     return result;
 }
 
@@ -110,7 +101,7 @@ int main(int argc, char* argv[])
     std::vector<std::string>    files;
 
     int loop = 1;
-    for (; loop < argc; ++loop) {a
+    for (; loop < argc; ++loop) {
         /*
          * If this is not a flag then we have reached the files.
          */
@@ -163,3 +154,4 @@ int main(int argc, char* argv[])
         }
     }
 }
+
