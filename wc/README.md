@@ -7,11 +7,15 @@ https://codingchallenges.fyi/challenges/challenge-wc/
 
 # Building
 
+````
 > make
+````
 
 # Usage
 
-> ./wc <flags>? <fileNames>*
+````
+./wc <flags>? <fileNames>*
+````
 
 ## Flags
 

@@ -7,11 +7,15 @@ https://codingchallenges.fyi/challenges/challenge-json-parser
 
 # Building
 
+````
 > make
+````
 
 # Usage
 
+````
 > ./json1 <fileNames>*
+````
 
 ## FileNames
 
