@@ -21,13 +21,14 @@ Char                        {NormalChar}|{EscapeChar}|{UnicodeChar}
 String                      \"{Char}*\"
 
 
-Sign                        [+-]
-Exp                         [Ee]{Sign}?{Digit}+
-Fract                       .{Digit}+
 Digit                       [0-9]
+Sign                        [+-]
+TheE                        [Ee]
+Exp                         {TheE}?{Sign}?{Digit}+
+Fract                       \.{Digit}+
 BaseNumber                  0|[1-9]{Digit}*
-OptNeg                      -
-Number                      {OptNeg}?{BaseNumber}{Fract}?{Exp}?
+SignNeg                     -
+Number                      {SignNeg}?{BaseNumber}{Fract}?{Exp}?
 
 %%
 
