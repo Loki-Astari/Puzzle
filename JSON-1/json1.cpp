@@ -328,7 +328,7 @@ Token JsonLexer::extractNumber(char c)
         token += c;
         int n = file.get();
         if (n == std::char_traits<char>::eof()) {
-            return Token::Invalid;
+            return Token::Number;
         }
         c = n;
     }
@@ -338,7 +338,7 @@ Token JsonLexer::extractNumber(char c)
             token += c;
             int n = file.get();
             if (n == std::char_traits<char>::eof()) {
-                return Token::Invalid;
+                return Token::Number;
             }
             c = n;
         }
@@ -360,7 +360,7 @@ Token JsonLexer::extractNumber(char c)
             token += c;
             int n = file.get();
             if (n == std::char_traits<char>::eof()) {
-                return Token::Invalid;
+                return Token::Number;
             }
             c = n;
         }
@@ -392,7 +392,7 @@ Token JsonLexer::extractNumber(char c)
             token += c;
             int n = file.get();
             if (n == std::char_traits<char>::eof()) {
-                return Token::Invalid;
+                return Token::Number;
             }
             c = n;
         }
