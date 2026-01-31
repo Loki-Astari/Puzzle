@@ -16,7 +16,7 @@ Hex                         [0-9a-fA-F]
 UnicodeChar                 \\u{Hex}{4}
 EscapeCharValue             [/"bfnrt\\]
 EscapeChar                  \\{EscapeCharValue}
-NormalChar                  [^\\"]
+NormalChar                  [^"\\]
 Char                        {NormalChar}|{EscapeChar}|{UnicodeChar}
 String                      \"{Char}*\"
 

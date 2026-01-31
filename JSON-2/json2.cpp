@@ -10,7 +10,7 @@ bool checkJson(std::string const& fileName, std::istream& file)
     ThorsAnvil::Json::Lexer     lexer(file);
     yy::Parser                  parser(lexer);
 
-    bool valid = parser.parse() == 0;
+    bool valid = (parser.parse() == 0);
     std::cout << fileName << ":\t\t" << ((valid ? "Valid" : "In Valid")) << "\n";
     return valid;
 }
