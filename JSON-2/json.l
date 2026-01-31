@@ -6,6 +6,8 @@
 
 %{
 #include "Lexer.h"
+#include "json.tab.hpp"
+#undef yylex
 %}
 
 WhiteSpace                  [ \t\r\n]+
@@ -36,15 +38,15 @@ Number                      {OptNeg}?{BaseNumber}{Fract}?{Exp}?
 \]                          {return ']';}
 \:                          {return ':';}
 \,                          {return ',';}
-true                        {return 250;}
-false                       {return 251;}
-null                        {return 252;}
-{String}                    {return 253;}
-{Number}                    {return 254;}
+true                        {return yy::Parser::token::True;}
+false                       {return yy::Parser::token::False;}
+null                        {return yy::Parser::token::Null;}
+{String}                    {return yy::Parser::token::String;}
+{Number}                    {return yy::Parser::token::Number;}
 
 
 {WhiteSpace}                { /* No Action */ }
-.                           {return 255; /* Error No matching */}
+.                           {return yy::Parser::token::Error; /* Error No matching */}
 
 %%
 
