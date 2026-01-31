@@ -49,7 +49,7 @@ JsonObjectValue     :       String ':' JsonValue
 
 %%
 
-void yy::Parser::error(yy::location const&, std::string const& msg)
+void yy::Parser::error(yy::location const&, std::string const& /*msg*/)
 {
     //std::cerr << "Error: " << msg << "\n";
 }

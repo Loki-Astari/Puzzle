@@ -4,7 +4,7 @@
 LEX					= flex
 YACC				= bison
 
-CXXFLAGS			= -std=c++20
+CXXFLAGS			= -std=c++20 -O3 -Werror -Wall -Wextra -Wno-unused-but-set-variable -Wno-sign-compare -Wno-uninitialized-const-reference
 
 
 all:  json2
