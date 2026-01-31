@@ -32,7 +32,6 @@ Number                      {OptNeg}?{BaseNumber}{Fract}?{Exp}?
 %%
 
 \{                          {return '{';}
-
 \}                          {return '}';}
 \[                          {return '[';}
 \]                          {return ']';}
