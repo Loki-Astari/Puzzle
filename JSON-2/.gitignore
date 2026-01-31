@@ -1,2 +1,11 @@
 json2
+
 json.lex.cpp
+
+json.tab.cpp
+json.tab.hpp
+
+location.hh
+position.hh
+stack.hh
+

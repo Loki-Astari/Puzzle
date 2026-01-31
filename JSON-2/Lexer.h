@@ -16,6 +16,7 @@ class Lexer : public yyFlexLexer
        Lexer(std::istream& in)
            : yyFlexLexer(&in)
        {}
+       int yylex(int*)  {return yylex();}
 
        // This function is generated from json.l file
        // and its implementation is in the json.lex.cpp

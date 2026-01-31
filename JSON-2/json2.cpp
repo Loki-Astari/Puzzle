@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "Parser.h"
 
 #include <iostream>
 
@@ -6,7 +7,7 @@
 int main()
 {
     ThorsAnvil::Json::Lexer     lexer(std::cin);
-    while (int t = lexer.yylex()) {
-        std::cout << "Token: " << t << "\n";
-    }
+    yy::Parser                  parser(lexer);
+
+    parser.parse();
 }
