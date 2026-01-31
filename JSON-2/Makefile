@@ -1,4 +1,6 @@
 
+#
+# Prefer flex/bison over lex/yacc
 LEX					= flex
 YACC				= bison
 
@@ -11,8 +13,9 @@ clean:
 
 json2:	json2.cpp json.lex.cpp json.tab.cpp
 
-json.lex.cpp:	json.l
-	$(LEX) -d -o json.lex.cpp json.l
-
-json.tab.cpp:	json.y
-	$(YACC) -o json.tab.cpp json.y
+#
+# LEX/YACC for C++ (Built-In rules only handle C)
+%.lex.cpp: %.l
+	$(LEX) $(LFLAGS) -o $@ $<
+%.tab.cpp:	%.y
+	$(YACC) $(YFLAGS) -o $@ $<
