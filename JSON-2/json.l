@@ -6,8 +6,7 @@
 
 %{
 #include "Lexer.h"
-#include "json.tab.hpp"
-#undef yylex
+#include "Parser.h"
 %}
 
 WhiteSpace                  [ \t\r\n]+
