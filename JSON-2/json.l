@@ -13,7 +13,7 @@
 WhiteSpace                  [ \t\r\n]+
 
 Hex                         [0-9a-fA-F]
-UnicodeChar                 \\u{Hex}
+UnicodeChar                 \\u{Hex}{4}
 EscapeCharValue             [/"bfnrt\\]
 EscapeChar                  \\{EscapeCharValue}
 NormalChar                  [^\\"]
