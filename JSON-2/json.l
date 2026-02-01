@@ -11,8 +11,8 @@
 
 WhiteSpace                  [ \t\r\n]+
 
-Hex                         [0-9a-fA-F]
-UnicodeChar                 \\u{Hex}{4}
+HexDigit                    [0-9a-fA-F]
+UnicodeChar                 \\u{HexDigit}{4}
 EscapeCharValue             [/"bfnrt\\]
 EscapeChar                  \\{EscapeCharValue}
 NormalChar                  [^"\\]
@@ -22,12 +22,12 @@ String                      \"{Char}*\"
 
 Digit                       [0-9]
 Sign                        [+-]
-TheE                        [Ee]
-Exp                         {TheE}?{Sign}?{Digit}+
+E                           [Ee]
+Exp                         {E}{Sign}?{Digit}+
 Fract                       \.{Digit}+
 BaseNumber                  0|[1-9]{Digit}*
-SignNeg                     -
-Number                      {SignNeg}?{BaseNumber}{Fract}?{Exp}?
+Minus                     -
+Number                      {Minus}?{BaseNumber}{Fract}?{Exp}?
 
 %%
 
