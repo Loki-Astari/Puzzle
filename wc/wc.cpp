@@ -22,10 +22,10 @@ struct Options
  */
 struct Result
 {
-    std::uintmax_t     lines   = 0;
-    std::uintmax_t     words   = 0;
-    std::uintmax_t     chars   = 0;
-    std::uintmax_t     bytes   = 0;
+    std::streampos     lines   = 0;
+    std::streampos     words   = 0;
+    std::streampos     chars   = 0;
+    std::streampos     bytes   = 0;
 };
 
 Result getData(std::istream& file)
@@ -43,14 +43,18 @@ Result getData(std::istream& file)
 
         // Words are "white space" separated.
         // Increment the counter when we hit a space when inside a word.
-        bool isSpace = std::isspace(c);
+        bool isSpace = std::isspace(c & 0x7F);
 
         if (!inWord && !isSpace) {
             result.words += 1;
         }
         inWord = !isSpace;
 
-        // Ignore extra characters in multi byte character;
+        // Ignore UTF-8 continuation bytes for the character count:
+        // Assumption that we only care about UTF-8 stream and not other
+        // multi-byte character systems. And yes that is true. I don't care.
+        // One standard to cover them all stop using other multi-byte systems.
+        // Rant over.
         if ((c & 0xC0) != 0x80) {
             result.chars += 1;
         }
@@ -97,25 +101,14 @@ int main(int argc, char* argv[])
 
         /* Allow old style unix flags */
         for (int flag = 1; argv[loop][flag]; ++flag) {
-            if (argv[loop][flag] == 'l') {
-                options.any     = false;
-                options.lines   = true;
-            }
-            else if (argv[loop][flag] == 'w') {
-                options.any     = false;
-                options.words   = true;
-            }
-            else if (argv[loop][flag] == 'm') {
-                options.any     = false;
-                options.chars   = true;
-            }
-            else if (argv[loop][flag] == 'c') {
-                options.any     = false;
-                options.bytes   = true;
-            }
-            else {
-                std::cerr << "Usage: wc [-lwmc] <files>*\n";
-                return 1;
+            switch (argv[loop][flag]) {
+                case 'l': options.any = false; options.lines = true; break;
+                case 'w': options.any = false; options.words = true; break;
+                case 'm': options.any = false; options.chars = true; break;
+                case 'c': options.any = false; options.bytes = true; break;
+                default:
+                    std::cerr << "Usage: wc [-lwmc] <files>*\n";
+                    return 1;
             }
         }
     }
