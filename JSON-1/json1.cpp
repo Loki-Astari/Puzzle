@@ -3,7 +3,21 @@
 #include <iostream>
 #include <string>
 
-enum class Token {EndOfStream, Invalid, OpenCurlyBrace, CloseCurlBrace, OpenSquareBrace, CloseSquareBrace, Colon, Comma, String, Number, True, False, Null};
+enum class Token {
+    EndOfStream,
+    Invalid,
+    OpenCurlyBrace,
+    CloseCurlBrace,
+    OpenSquareBrace,
+    CloseSquareBrace,
+    Colon,
+    Comma,
+    String,
+    Number,
+    True,
+    False,
+    Null
+};
 
 class JsonLexer
 {

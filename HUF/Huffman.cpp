@@ -76,7 +76,7 @@ void Huffman::Node::exportTree(std::ostream& str)
     }
 }
 
-// Once a Hoffman tree is built from scratch.
+// Once a Huffman tree is built from scratch.
 // Call this function to calculate the representation of each letter.
 // Also calculate the size of the output file that will be generated.
 std::size_t Huffman::Node::setName()
@@ -98,7 +98,7 @@ std::size_t Huffman::Node::setName()
 
 // Sets the value of each lead node and how it is represented.
 // Return data about the amount of data that will written to the output.
-//  first:  Number of bytes representing the Hoffman tree when encoding.
+//  first:  Number of bytes representing the Huffman tree when encoding.
 //  second: Number of bits to represent the data of the file.
 Huffman::Node::DataSize Huffman::Node::setName(std::size_t pSize, std::size_t pValue)
 {
@@ -142,7 +142,7 @@ bool HuffmanEncoder::buildTree(std::istream& input)
         return false;
     }
 
-    // Now build the Hoffman tree.
+    // Now build the Huffman tree.
     // Here we are dynamically allocating nodes without protection.
     // So we need to build it inside a try/catch block so if there
     // is an issue it will be correctly tidied up.
@@ -188,18 +188,18 @@ bool HuffmanEncoder::buildTree(std::istream& input)
     return true;
 }
 
-// Export the Hoffman tree to the file.
+// Export the Huffman tree to the file.
 void HuffmanEncoder::exportTree(std::ostream& out)
 {
     root->exportTree(out);
 }
 
-// using the Hoffman tree encode the input file to the output file.
+// using the Huffman tree encode the input file to the output file.
 void HuffmanEncoder::encode(std::istream& in, std::ostream& out)
 {
-    std::size_t const   maxSize     = sizeof(std::size_t) * 8;
-    std::size_t         currentLen  = 0;
-    std::size_t         currentVal  = 0;
+    std::uint64_t const   maxSize     = sizeof(std::uint64_t) * 8;
+    std::uint64_t         currentLen  = 0;
+    std::uint64_t         currentVal  = 0;
 
     // Add each of the characters one at a time.
     for (unsigned char c = in.get(); in; c = in.get()) {
@@ -211,7 +211,7 @@ void HuffmanEncoder::encode(std::istream& in, std::ostream& out)
     // If there is data left in the currentValue
     // Then push that to the stream.
     if (currentLen != 0) {
-        std::size_t shift = maxSize - currentLen;
+        std::uint64_t shift = maxSize - currentLen;
         currentVal = currentVal << shift;
         out.write(reinterpret_cast<char*>(&currentVal), sizeof(currentVal));
     }
@@ -219,26 +219,26 @@ void HuffmanEncoder::encode(std::istream& in, std::ostream& out)
 
 // Encode a sing character 'c'
 // If this fills the 'currentVal' object then write to the file.
-void HuffmanEncoder::add(std::ostream& out, Node* count, std::size_t const& maxSize, std::size_t& currentLen, std::size_t& currentVal, int c)
+void HuffmanEncoder::add(std::ostream& out, Node* count, std::uint64_t const& maxSize, std::uint64_t& currentLen, std::uint64_t& currentVal, int c)
 {
     // Representation of the char 'c'
     Node& val = count[c];
 
     // The value that needs to be encoded.
     // This may fit into multiple values
-    std::size_t writeLen = val.size;
-    std::size_t writeVal = val.value;
+    std::uint64_t writeLen = val.size;
+    std::uint64_t writeVal = val.value;
 
     while (writeLen != 0) {
         // How much can we write into the current value.
-        std::size_t outLen = std::min(writeLen, (maxSize - currentLen));
+        std::uint64_t outLen = std::min(writeLen, (maxSize - currentLen));
 
         // Add as many bits as we can from encoded 'c' into this value.
         currentVal = (currentVal << outLen) | (writeVal >> (writeLen - outLen));
         currentLen += outLen;
 
         // Remove what we have encode
-        std::size_t mask = (1UL << (writeLen - outLen)) - 1;
+        std::uint64_t mask = (std::uint64_t{1} << (writeLen - outLen)) - 1;
         writeVal = writeVal & mask;
         writeLen -= outLen;
 
@@ -263,11 +263,11 @@ bool HuffmanDecoder::buildTree(std::istream& input)
     return true;
 }
 
-// Decode the input stream using the Hoffman stream place the output into out
+// Decode the input stream using the Huffman stream place the output into out
 void HuffmanDecoder::decode(std::istream& in, std::ostream& out)
 {
-    std::size_t const   maxSize     = sizeof(std::size_t) * 8;
-    std::size_t const   maskBase    = (1UL << (maxSize - 1));
+    std::uint64_t const   maxSize     = sizeof(std::uint64_t) * 8;
+    std::uint64_t const   maskBase    = (std::uint64_t{1} << (maxSize - 1));
 
     Node*               current     = root.get();
 
@@ -275,16 +275,16 @@ void HuffmanDecoder::decode(std::istream& in, std::ostream& out)
 
     while (!finished) {
         // Read the next vallue from the input stream.
-        std::size_t     currentValue;
+        std::uint64_t     currentValue;
         in.read(reinterpret_cast<char*>(&currentValue), sizeof(currentValue));
 
-        // Loop over each of the bit this allows us to follow the Hoffman
+        // Loop over each of the bit this allows us to follow the Huffman
         // tree to a leaf node and then output the value of the lead node.
-        for (std::size_t currentMask = maskBase; currentMask; currentMask >>= 1) {
+        for (std::uint64_t currentMask = maskBase; currentMask; currentMask >>= 1) {
 
             // Get the next bit.
             bool branch = currentValue & currentMask;
-            // Update the position in the Hoffman tree.
+            // Update the position in the Huffman tree.
             current     = branch ? current->right : current->left;
 
             // If we are at a leaf node.
@@ -296,7 +296,7 @@ void HuffmanDecoder::decode(std::istream& in, std::ostream& out)
                 else {
                     out << current->letter;
                 }
-                // Reset the current point in the Hoffman tree to the root.
+                // Reset the current point in the Huffman tree to the root.
                 current = root.get();
             }
         }

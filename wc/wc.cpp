@@ -22,55 +22,41 @@ struct Options
  */
 struct Result
 {
-    std::size_t     lines   = 0;
-    std::size_t     words   = 0;
-    std::size_t     chars   = 0;
-    std::size_t     bytes   = 0;
+    std::uintmax_t     lines   = 0;
+    std::uintmax_t     words   = 0;
+    std::uintmax_t     chars   = 0;
+    std::uintmax_t     bytes   = 0;
 };
 
 Result getData(std::istream& file)
 {
     Result      result;
-    int         c        = file.get();
-    bool        newLine  = true;
-    bool        inWord   = !std::isspace(c);
+    bool        inWord   = false;
 
-    for (; c != std::char_traits<char>::eof(); c = file.get()) {
+    for (int c = file.get(); c != std::char_traits<char>::eof(); c = file.get()) {
 
         // A line must have at least one character on it.
         // The new line character counts as a character for this purpose.
-        if (newLine == true) {
-            newLine = false;
-            result.lines    += 1;
-        }
         if (c == '\n') {
-            newLine = true;
+            result.lines += 1;
         }
 
         // Words are "white space" separated.
         // Increment the counter when we hit a space when inside a word.
         bool isSpace = std::isspace(c);
 
-        if (inWord && isSpace) {
-            inWord = false;
-            result.words    += 1;
+        if (!inWord && !isSpace) {
+            result.words += 1;
         }
-        else if (!inWord && !isSpace) {
-            inWord = true;
-        }
+        inWord = !isSpace;
 
         // Ignore extra characters in multi byte character;
         if ((c & 0xC0) != 0x80) {
-            result.chars    += 1;
+            result.chars += 1;
         }
 
         // Increment for each char read from the stream
-        result.bytes    += 1;
-    }
-
-    // We are in a word that has not been counted.
-    if (inWord) {
-        result.words += 1;
+        result.bytes += 1;
     }
 
     return result;
@@ -147,7 +133,7 @@ int main(int argc, char* argv[])
     for (auto fileName: files) {
         std::ifstream   file(fileName);
         if (!file) {
-            std::cout << "Unknown file: " << fileName << "\n";
+            std::cerr << "Failure to open file: " << fileName << "\n";
         }
         else {
             display(file, fileName, options);

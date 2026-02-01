@@ -99,7 +99,7 @@ class HuffmanEncoder: public Huffman
     private:
         // Encode a sing character 'c'
         // If this fills the 'currentVal' object then write to the file.
-        void add(std::ostream& out, Node* count, std::size_t const& maxSize, std::size_t& currentLen, std::size_t& currentVal, int c);
+        void add(std::ostream& out, Node* count, std::uint64_t const& maxSize, std::uint64_t& currentLen, std::uint64_t& currentVal, int c);
 };
 
 class HuffmanDecoder: public Huffman
