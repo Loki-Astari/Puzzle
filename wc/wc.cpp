@@ -26,63 +26,146 @@ struct Result
     std::streampos     words   = 0;
     std::streampos     chars   = 0;
     std::streampos     bytes   = 0;
+
+    void operator+=(Result const& rhs) {
+        lines += rhs.lines;
+        words += rhs.words;
+        chars += rhs.chars;
+        bytes += rhs.bytes;
+    }
 };
+
+static int newLineCheck[256] =            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static int unicodeSize[256] =             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                                            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                                            4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0};
+
 
 Result getData(std::istream& file)
 {
     Result      result;
-    bool        inWord   = false;
+    bool        inWord = false;
 
-    for (int c = file.get(); c != std::char_traits<char>::eof(); c = file.get()) {
+    // We will read chunks of 'bufferSize' from the stream.
+    // But if we hit a multi-byte character as the last character in the buffer we will read that
+    // into the buffer so we need a capacity 'bufferCapacity' that is slightly larger in case we
+    // need it.
+    static constexpr int bufferSize = 4096;
+    static constexpr int bufferCapacity = bufferSize + 3;
 
-        // A line must have at least one character on it.
-        // The new line character counts as a character for this purpose.
-        if (c == '\n') {
-            result.lines += 1;
-        }
+    // We will read 4096 
+    unsigned char buffer[bufferCapacity];
 
-        // Words are "white space" separated.
-        // Increment the counter when we hit a space when inside a word.
-        bool isSpace = std::isspace(c & 0xFF);
+    file.read(reinterpret_cast<char*>(buffer), bufferSize);
+    std::streamsize count = file.gcount();
+    while (count != 0) {
 
-        if (!inWord && !isSpace) {
-            result.words += 1;
-        }
-        inWord = !isSpace;
+        int increment;
+        for (auto loop = 0; loop < count; loop += increment) {
 
-        // Ignore UTF-8 continuation bytes for the character count:
-        // Assumption that we only care about UTF-8 stream and not other
-        // multi-byte character systems. And yes that is true. I don't care.
-        // One standard to cover them all stop using other multi-byte systems.
-        // Rant over.
-        if ((c & 0xC0) != 0x80) {
+            unsigned int index = buffer[loop];
+
+            increment = unicodeSize[index];
+            if (loop + increment > count) {
+                // If the last character extends beyond the buffer then read it into
+                // the buffer. We have made sure the buffer capacity is enough to hold
+                // these extra characters.
+                int read = loop + increment - count;
+                file.read(reinterpret_cast<char*>(&buffer[count]), read);
+                count += read;
+            }
+
+            // Assumption that we only care about UTF-8 stream and not other
+            // multi-byte character systems. And yes that is true. I don't care.
+            // One standard to cover them all stop using other multi-byte systems.
+            // Rant over.
+            std::wint_t  ch;
+            switch (increment) {
+                case 0:     throw std::runtime_error("Bad Input");
+                case 1:     ch = index;break;
+                case 2:     ch = ((static_cast<int>(buffer[loop + 0]) & 0x1F) <<  6)
+                               | ((static_cast<int>(buffer[loop + 1]) & 0x3F) <<  0);
+                            break;
+                case 3:     ch = ((static_cast<int>(buffer[loop + 0]) & 0x0F) << 12)
+                               | ((static_cast<int>(buffer[loop + 1]) & 0x3F) <<  6)
+                               | ((static_cast<int>(buffer[loop + 2]) & 0x3F) <<  0);
+                            break;
+                case 4:     ch = ((static_cast<int>(buffer[loop + 0]) & 0x07) << 18)
+                               | ((static_cast<int>(buffer[loop + 1]) & 0x3F) << 12)
+                               | ((static_cast<int>(buffer[loop + 2]) & 0x3F) <<  6)
+                               | ((static_cast<int>(buffer[loop + 3]) & 0x3F) <<  0);
+                            break;
+            }
+
+            // A line must have at least one character on it.
+            // The new line character counts as a character for this purpose.
+            result.lines += newLineCheck[index];
+
+            // Words are "white space" separated.
+            // Increment the counter when we are not in a word and hit one.
+            // We are not in a word when there is white space.
+            bool isSpace = std::iswspace(ch);
+            result.words += (!inWord && !isSpace) ? 1 : 0;
+
+            // Keep track if we are in the word.
+            inWord = !isSpace;
+
+            // We are parsing one character at a time in this loop.
             result.chars += 1;
-        }
 
-        // Increment for each char read from the stream
-        result.bytes += 1;
+            // The character may be multiple bytes.
+            result.bytes += increment;
+        }
+        file.read(reinterpret_cast<char*>(buffer), 4096);
+        count = file.gcount();
     }
 
     return result;
 }
 
-void display(std::istream& file, std::string const& fileName, Options const& options)
+void display(std::string const& fileName, Options const& options, Result const& data)
 {
-    Result data = getData(file);
-    std::cout << "\t";
     if (options.any || options.lines) {
-        std::cout << data.lines << "\t";
+        std::cout << " " << std::setw(7) << data.lines;
     }
     if (options.any || options.words) {
-        std::cout << data.words << "\t";
+        std::cout << " " << std::setw(7) << data.words;
     }
     if (options.any || options.chars) {
-        std::cout << data.chars << "\t";
+        std::cout << " " << std::setw(7) << data.chars;
     }
     if (options.any || options.bytes) {
-        std::cout << data.bytes << "\t";
+        std::cout << " " << std::setw(7) << data.bytes;
     }
-    std::cout << fileName << "\n";
+    std::cout << " " << fileName << "\n";
 }
 
 int main(int argc, char* argv[])
@@ -120,17 +203,25 @@ int main(int argc, char* argv[])
 
     /* If no files are explicitly set then use std::cin */
     if (files.size() == 0) {
-        display(std::cin, "", options);
+        Result data = getData(std::cin);
+        display("", options, data);
     }
     /* Loop over all the specified files */
+    Result total;
     for (auto fileName: files) {
         std::ifstream   file(fileName);
         if (!file) {
             std::cerr << "Failure to open file: " << fileName << "\n";
         }
         else {
-            display(file, fileName, options);
+            Result data = getData(file);
+            display(fileName, options, data);
+
+            total += data;
         }
+    }
+    if (files.size() > 1) {
+        display("total", options, total);
     }
 }
 
