@@ -81,7 +81,6 @@ Result getData(std::istream& file)
     static constexpr int bufferSize = 4096;
     static constexpr int bufferCapacity = bufferSize + 3;
 
-    // We will read 4096 
     unsigned char buffer[bufferCapacity];
 
     file.read(reinterpret_cast<char*>(buffer), bufferSize);
@@ -125,8 +124,7 @@ Result getData(std::istream& file)
                             break;
             }
 
-            // A line must have at least one character on it.
-            // The new line character counts as a character for this purpose.
+            // Count the number of new line characters.
             result.lines += newLineCheck[index];
 
             // Words are "white space" separated.
@@ -144,7 +142,7 @@ Result getData(std::istream& file)
             // The character may be multiple bytes.
             result.bytes += increment;
         }
-        file.read(reinterpret_cast<char*>(buffer), 4096);
+        file.read(reinterpret_cast<char*>(buffer), bufferSize);
         count = file.gcount();
     }
 
