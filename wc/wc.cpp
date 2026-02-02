@@ -43,7 +43,7 @@ Result getData(std::istream& file)
 
         // Words are "white space" separated.
         // Increment the counter when we hit a space when inside a word.
-        bool isSpace = std::isspace(c & 0x7F);
+        bool isSpace = std::isspace(c & 0xFF);
 
         if (!inWord && !isSpace) {
             result.words += 1;
